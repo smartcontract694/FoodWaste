@@ -1,0 +1,82 @@
+contract WasteAssessment{
+
+address manager;
+Registration registrationContract;
+uint ConsWaste;
+uint NonConsWaste;
+enum contractState {ready, WasteReportInProgress, NoFeeReq, paymentReceived  }
+contractState public state;
+uint fee;
+address currentFBretailor;
+//event
+event NonconsumableWasteFeeMustBePaid(address FBretailor, uint NonConsFee);
+event NoFeeNeededForNonconsumableWaste(address FBretailor);
+event ConsumableWasteFeeMustBePaid(address FBretailor, uint ConsFee);
+event NoFeeNeededForConsumableWaste(address FBretailor);
+event TotalFee(address FBretailor, uint Total);
+event PaymentReceivedFromFBretailor(address FBretailor);
+
+modifier OnlyCurrentFBretailor(){
+     require(msg.sender == currentFBretailor); 
+      _;
+}
+
+modifier OnlyWasteManager(){
+    require(msg.sender == manager);
+    _;
+}
+
+constructor(address registrationAddress)public {
+        registrationContract=Registration(registrationAddress);
+        manager = msg.sender;
+        ConsWaste = 0;
+        NonConsWaste = 0;
+        fee = 0;
+        state = contractState.ready;
+ }
+
+    function ReportFoodWaste(uint NonconsumableWaste, uint ConsumableWaste) public{
+        
+        require(registrationContract.RegisteredFBretailor(msg.sender) && (state == contractState.ready ));
+        currentFBretailor = msg.sender;
+        if(NonconsumableWaste > 5){
+        fee = computeFee(1, NonconsumableWaste);
+        emit NonconsumableWasteFeeMustBePaid(msg.sender, fee);
+        } 
+        else 
+        emit NoFeeNeededForNonconsumableWaste(msg.sender);
+        if(ConsumableWaste > 5){
+        uint consFee =  computeFee(2, ConsumableWaste);
+        emit ConsumableWasteFeeMustBePaid(msg.sender, consFee);
+        fee =  fee+consFee;
+          
+        }
+        else{
+        emit NoFeeNeededForConsumableWaste(msg.sender);}
+        state = contractState.WasteReportInProgress;
+         emit TotalFee(msg.sender, fee);
+
+    }
+
+    function computeFee(uint wasteType, uint wasteAmount) internal returns (uint)//1 uncosumable, 2 consumable
+    {
+         
+        if(wasteType == 1)
+             return  (wasteAmount /3);
+        if(wasteType == 2)
+             return (wasteAmount /4);
+    }
+
+    function payFees()  public payable OnlyCurrentFBretailor
+    {
+        require ((msg.sender == currentFBretailor) && (state == contractState.WasteReportInProgress));
+        require(msg.value == (fee * 1 ether));
+        emit PaymentReceivedFromFBretailor(msg.sender);
+        state = contractState.paymentReceived;
+        payable(manager).transfer(msg.value);
+        state = contractState.ready;
+
+    }
+
+   
+}
