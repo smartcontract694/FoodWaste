@@ -1,0 +1,41 @@
+contract FBretailor{
+address FBretailorManager;
+mapping(address=>bool) chefs;
+
+bytes32 menuMappingHash;
+
+ constructor()public {
+        FBretailorManager=msg.sender;
+ }
+
+//events
+event MenuItemIsPrepped(uint menuItemNo,string menuItemName, address chef);
+event customerOrderDetails(address customer, uint transactionNumb, uint menuItemNo);
+event MenuMappingListUploadedSuccessfully(bytes32 hash);
+
+modifier onlyFBretailorManager{
+      require(msg.sender == FBretailorManager);
+      _;
+    }
+
+function registerChef(address c) onlyFBretailorManager public{
+    chefs[c] = true;
+}
+
+function uploadMenuMappingList(bytes32 hash) onlyFBretailorManager public{
+    menuMappingHash = hash;
+    emit MenuMappingListUploadedSuccessfully(hash);
+}
+
+
+  function prepMenuItem(uint menuItemNo, string memory menuItemName) public {
+        require(chefs[msg.sender]);    //only registered chefs in the FBRetailor
+       emit MenuItemIsPrepped(menuItemNo, menuItemName, msg.sender);
+    }
+
+    function submitCustomerOrder(address customer, uint transactionNumb, uint menuItemNo )onlyFBretailorManager public
+    {
+
+        emit customerOrderDetails(customer, transactionNumb, menuItemNo);
+    }
+}
