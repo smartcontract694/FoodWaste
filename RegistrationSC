@@ -1,0 +1,81 @@
+pragma solidity >0.8.6;
+
+///////////////////////
+///Registration SC////
+//////////////////////
+
+contract Registration{
+   
+    address manager; // EA
+    mapping(address=>bool) RegisteredFBretailors;
+     mapping(address=>bool) RegisteredFarmers;
+      mapping(address=>bool) RegisteredFoodProcessors;
+      mapping(address=>bool) RegisteredDistributers;
+      
+   
+    constructor() public{
+       manager= msg.sender;
+    }
+   
+    modifier onlyManager{
+      require(msg.sender == manager);
+      _;
+    }
+    modifier onlyRegisteredFBretailors{
+      require(RegisteredFBretailors[msg.sender]); 
+      _;
+    }
+   //Farmers
+    function RegisterFarmer(address a) onlyManager public{
+        RegisteredFarmers[a]=true;
+    }
+   
+    function RevokeFarmer(address a) onlyManager public{
+        RegisteredFarmers[a]=false;
+    }
+   
+    function RegisteredFarmer(address a) public  returns (bool){
+        return RegisteredFarmers[a];
+       
+    }
+    //FBretailors
+      function RegisterFBretailors(address a) onlyManager public{
+        RegisteredFBretailors[a]=true;
+    }
+   
+    function RevokeFBretailors(address a) onlyManager public{
+        RegisteredFBretailors[a]=false;
+    }
+   
+    function RegisteredFBretailor(address a) public returns (bool) {
+        return RegisteredFBretailors[a];
+    }
+     //FoodProcessors
+      function RegisterFoodProcessors(address a) onlyManager public{
+        RegisteredFoodProcessors[a]=true;
+    }
+   
+    function RevokeFoodProcessors(address a) onlyManager public{
+        RegisteredFoodProcessors[a]=false;
+    }
+   
+    function RegisteredFoodProcessor(address a) public returns (bool) {
+        return (RegisteredFoodProcessors[a]);    
+       
+    }
+    //RegisteredDistributers    
+       function RegisterDistributer(address a) onlyManager public{
+        RegisteredDistributers[a]=true;
+    }
+   
+    function RevokeDistributer(address a) onlyManager public{
+        RegisteredDistributers[a]=false;
+    }
+   
+    function RegisteredDistributer(address a) public returns (bool){
+        return (RegisteredDistributers[a]);    
+       
+    }
+
+   
+}
